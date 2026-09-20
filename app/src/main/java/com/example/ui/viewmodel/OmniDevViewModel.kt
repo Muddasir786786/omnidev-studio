@@ -22,6 +22,12 @@ sealed interface GenerationState {
     data class Error(val message: String) : GenerationState
 }
 
+enum class CanvasViewMode(val title: String) {
+    CODE("Code View"),
+    LIVE_PREVIEW("Live Preview"),
+    SPLIT("Split View")
+}
+
 class OmniDevViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: OmniDevRepository
@@ -39,6 +45,10 @@ class OmniDevViewModel(application: Application) : AndroidViewModel(application)
     val selectedLanguage = MutableStateFlow("TypeScript")
     val selectedFramework = MutableStateFlow("React + Tailwind")
     val selectedStyle = MutableStateFlow("Cyber Executive")
+
+    // Engine & Canvas Mode
+    val selectedModel = MutableStateFlow("Gemini 2.5 Flash")
+    val canvasViewMode = MutableStateFlow(CanvasViewMode.SPLIT)
 
     // Active Project Workspace
     private val _currentProject = MutableStateFlow<FullProject?>(null)
@@ -125,6 +135,18 @@ class OmniDevViewModel(application: Application) : AndroidViewModel(application)
 
     fun selectFile(index: Int) {
         _selectedFileIndex.value = index
+    }
+
+    fun setCanvasViewMode(mode: CanvasViewMode) {
+        canvasViewMode.value = mode
+    }
+
+    fun setSelectedModel(model: String) {
+        selectedModel.value = model
+    }
+
+    fun clearWorkspace() {
+        promptInput.value = ""
     }
 
     fun loadProject(projectId: Long) {

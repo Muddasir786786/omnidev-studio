@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,9 @@ import com.example.ui.components.ArchitectureGraphView
 import com.example.ui.components.CodifferaHeroBanner
 import com.example.ui.components.CodifferaLogoBadge
 import com.example.ui.components.SyntaxHighlightedCodeView
+import com.example.ui.preview.LiveSandboxPreviewView
 import com.example.ui.theme.*
+import com.example.ui.viewmodel.CanvasViewMode
 import com.example.ui.viewmodel.OmniDevViewModel
 
 @Composable
@@ -35,6 +38,7 @@ fun CodeExplorerScreen(
 ) {
     val currentProject by viewModel.currentProject.collectAsStateWithLifecycle()
     val selectedFileIndex by viewModel.selectedFileIndex.collectAsStateWithLifecycle()
+    val canvasViewMode by viewModel.canvasViewMode.collectAsStateWithLifecycle()
     var showArchitecture by remember { mutableStateOf(false) }
     var refinementText by remember { mutableStateOf("") }
 
@@ -45,12 +49,13 @@ fun CodeExplorerScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(StudioBackgroundDark)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         // Prominent Codiffera Header Card with Glowing Startup Splash
         CodifferaHeroBanner(
-            subtitle = "DEV TOOL STUDIO • CODE ENGINE",
+            subtitle = "DEV TOOL STUDIO • CODE ENGINE & SANDBOX",
             modifier = Modifier.padding(bottom = 14.dp)
         )
 
@@ -66,85 +71,49 @@ fun CodeExplorerScreen(
             ) {
                 CodifferaLogoBadge(size = 32.dp, showGlow = true)
                 Column {
-                    Text("SYNTAX-HIGHLIGHTED CODEBASE", color = StudioCyanPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Text(project?.title ?: "Project Code", color = TextPrimaryDark, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("WORKSPACE ENGINE", color = StudioCyanPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text(project?.title ?: "Project Workspace", color = TextPrimaryDark, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = showArchitecture,
-                    onClick = { showArchitecture = !showArchitecture },
-                    label = { Text("Split Architecture") },
-                    leadingIcon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = StudioCyanPrimary,
-                        selectedLabelColor = Color.Black
-                    ),
-                    modifier = Modifier.testTag("toggle_architecture_view")
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Optional Architecture Pipeline
-        if (showArchitecture && project != null) {
-            ArchitectureGraphView(
-                platform = project.platform,
-                language = project.language,
-                securityScore = project.securityScore,
-                summary = project.architectureSummary
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-        }
-
-        // File Tabs Horizontal Scroller
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            files.forEachIndexed { index, file ->
-                val isSelected = index == selectedFileIndex
-                Surface(
-                    modifier = Modifier
-                        .clickable { viewModel.selectFile(index) }
-                        .testTag("tab_file_${file.fileName}"),
-                    color = if (isSelected) StudioCardHoverDark else Color(0xFF131D31),
-                    shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (isSelected) StudioCyanPrimary else StudioBorderDark
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+            // Dual View Mode Buttons
+            Row(
+                modifier = Modifier
+                    .background(StudioCardDark, RoundedCornerShape(8.dp))
+                    .border(1.dp, StudioBorderDark, RoundedCornerShape(8.dp))
+                    .padding(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CanvasViewMode.values().forEach { mode ->
+                    val isSelected = canvasViewMode == mode
+                    Surface(
+                        color = if (isSelected) StudioBlueAccent else Color.Transparent,
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier
+                            .clickable { viewModel.setCanvasViewMode(mode) }
+                            .testTag("explorer_btn_mode_${mode.name.lowercase()}")
                     ) {
-                        Icon(
-                            Icons.Default.Description,
-                            contentDescription = null,
-                            tint = if (isSelected) StudioCyanPrimary else TextSecondaryDark,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = file.fileName,
-                            color = if (isSelected) TextPrimaryDark else TextSecondaryDark,
-                            fontSize = 12.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                        )
-                        Surface(
-                            color = StudioCyanPrimary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(4.dp)
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
+                            Icon(
+                                imageVector = when (mode) {
+                                    CanvasViewMode.CODE -> Icons.Default.Code
+                                    CanvasViewMode.LIVE_PREVIEW -> Icons.Default.Visibility
+                                    CanvasViewMode.SPLIT -> Icons.Default.ViewSidebar
+                                },
+                                contentDescription = mode.title,
+                                tint = if (isSelected) Color.White else TextSecondaryDark,
+                                modifier = Modifier.size(13.dp)
+                            )
                             Text(
-                                text = file.language,
-                                color = StudioCyanPrimary,
-                                fontSize = 9.sp,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                text = mode.title,
+                                color = if (isSelected) Color.White else TextSecondaryDark,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
                         }
                     }
@@ -152,48 +121,144 @@ fun CodeExplorerScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // File Metadata Bar
-        activeFile?.let { file ->
+        // Optional Architecture Toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            FilterChip(
+                selected = showArchitecture,
+                onClick = { showArchitecture = !showArchitecture },
+                label = { Text("System Architecture", fontSize = 11.sp) },
+                leadingIcon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(14.dp)) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = StudioCyanPrimary.copy(alpha = 0.2f),
+                    selectedLabelColor = StudioCyanPrimary,
+                    containerColor = StudioCardDark,
+                    labelColor = TextSecondaryDark
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = showArchitecture,
+                    borderColor = if (showArchitecture) StudioCyanPrimary else StudioBorderDark
+                ),
+                modifier = Modifier.testTag("toggle_architecture_view")
+            )
+        }
+
+        // Optional Architecture Pipeline
+        if (showArchitecture && project != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            ArchitectureGraphView(
+                platform = project.platform,
+                language = project.language,
+                securityScore = project.securityScore,
+                summary = project.architectureSummary
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // File Tabs Horizontal Scroller (when in Code or Split mode)
+        if (canvasViewMode != CanvasViewMode.LIVE_PREVIEW && files.isNotEmpty()) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(file.fileType, color = StudioVioletAccent, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                    Text("•", color = TextMutedDark)
-                    Text("${file.content.lines().size} lines", color = TextSecondaryDark, fontSize = 11.sp)
-                    Text("•", color = TextMutedDark)
-                    Text("${file.content.length} bytes", color = TextSecondaryDark, fontSize = 11.sp)
+                files.forEachIndexed { index, file ->
+                    val isSelected = index == selectedFileIndex
+                    Surface(
+                        modifier = Modifier
+                            .clickable { viewModel.selectFile(index) }
+                            .testTag("tab_file_${file.fileName}"),
+                        color = if (isSelected) StudioCardHoverDark else StudioCardDark,
+                        shape = RoundedCornerShape(8.dp),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (isSelected) StudioCyanPrimary else StudioBorderDark
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Description,
+                                contentDescription = null,
+                                tint = if (isSelected) StudioCyanPrimary else TextSecondaryDark,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = file.fileName,
+                                color = if (isSelected) TextPrimaryDark else TextSecondaryDark,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            )
+                            Surface(
+                                color = StudioCyanPrimary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = file.language,
+                                    color = StudioCyanPrimary,
+                                    fontSize = 9.sp,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
                 }
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+        }
 
-                Surface(
-                    color = StudioEmeraldSuccess.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(
-                        "OWASP Hardened",
-                        color = StudioEmeraldSuccess,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+        // Main Rendered Area: Live Sandbox, Syntax Code, or Both (Split)
+        when (canvasViewMode) {
+            CanvasViewMode.CODE -> {
+                activeFile?.let { file ->
+                    SyntaxHighlightedCodeView(
+                        code = file.content,
+                        language = file.language,
+                        fileName = file.fileName
                     )
+                } ?: Box(
+                    modifier = Modifier.fillMaxWidth().padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No code loaded.", color = TextSecondaryDark)
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            CanvasViewMode.LIVE_PREVIEW -> {
+                LiveSandboxPreviewView(
+                    project = currentProject,
+                    isDarkTheme = true
+                )
+            }
 
-            // Main Syntax Highlighted Code Viewer
-            SyntaxHighlightedCodeView(
-                code = file.content,
-                language = file.language,
-                fileName = file.fileName
-            )
+            CanvasViewMode.SPLIT -> {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Live Sandbox Component
+                    LiveSandboxPreviewView(
+                        project = currentProject,
+                        isDarkTheme = true
+                    )
+
+                    // Code View Component
+                    activeFile?.let { file ->
+                        SyntaxHighlightedCodeView(
+                            code = file.content,
+                            language = file.language,
+                            fileName = file.fileName
+                        )
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -219,29 +284,25 @@ fun CodeExplorerScreen(
                         placeholder = { Text("e.g. Add rate-limiting middleware or OAuth flow...", fontSize = 12.sp, color = TextMutedDark) },
                         modifier = Modifier.weight(1f).testTag("input_refinement"),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF0D1424),
-                            unfocusedContainerColor = Color(0xFF0D1424),
                             focusedBorderColor = StudioCyanPrimary,
                             unfocusedBorderColor = StudioBorderDark,
                             focusedTextColor = TextPrimaryDark,
                             unfocusedTextColor = TextPrimaryDark
                         ),
-                        shape = RoundedCornerShape(10.dp),
-                        singleLine = true
+                        shape = RoundedCornerShape(10.dp)
                     )
-
-                    Button(
+                    IconButton(
                         onClick = {
                             if (refinementText.isNotBlank()) {
                                 viewModel.refineProject(refinementText)
                                 refinementText = ""
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = StudioCyanPrimary),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.testTag("btn_apply_refinement")
+                        modifier = Modifier
+                            .background(StudioCyanPrimary, RoundedCornerShape(10.dp))
+                            .testTag("btn_send_refinement")
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Apply", tint = Color.Black, modifier = Modifier.size(16.dp))
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Refine", tint = Color.Black)
                     }
                 }
             }

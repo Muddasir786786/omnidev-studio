@@ -6,17 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -24,18 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.components.CodifferaLogoBadge
+import com.example.ui.components.AiStudioHeader
+import com.example.ui.components.AiStudioSidebarContent
+import com.example.ui.components.StudioDestination
 import com.example.ui.screens.*
 import com.example.ui.theme.*
+import com.example.ui.viewmodel.CanvasViewMode
 import com.example.ui.viewmodel.OmniDevViewModel
-
-enum class OmniNavTab(val title: String, val icon: ImageVector) {
-    STUDIO("Studio", Icons.Default.AutoFixHigh),
-    CODE("Code", Icons.Default.Code),
-    PREVIEW("Preview", Icons.Default.Visibility),
-    SECURITY("Security", Icons.Default.Shield),
-    PROJECTS("Projects", Icons.Default.Folder)
-}
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val viewModel: OmniDevViewModel by viewModels()
@@ -56,130 +47,129 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OmniDevAppRoot(viewModel: OmniDevViewModel) {
-    var selectedTab by remember { mutableStateOf(OmniNavTab.STUDIO) }
+    var selectedDestination by remember { mutableStateOf(StudioDestination.STUDIO) }
     var showSettingsDialog by remember { mutableStateOf(false) }
 
-    val currentProject by viewModel.currentProject.collectAsStateWithLifecycle()
-    val project = currentProject?.project
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = StudioBackgroundDark,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CodifferaLogoBadge(size = 36.dp, showGlow = true)
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Codiff",
-                                    color = TextPrimaryDark,
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = (-0.5).sp
-                                )
-                                Text(
-                                    text = "era",
-                                    color = StudioCyanPrimary,
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = (-0.5).sp
-                                )
-                            }
-                            Text(
-                                text = project?.let { "${it.platform} • ${it.language}" } ?: "DEV TOOL STUDIO",
-                                color = StudioCyanPrimary,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                letterSpacing = 1.sp
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { showSettingsDialog = true },
-                        modifier = Modifier.testTag("btn_open_settings")
-                    ) {
-                        Icon(Icons.Default.Tune, contentDescription = "Settings", tint = TextSecondaryDark)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = StudioSurfaceDark,
-                    titleContentColor = TextPrimaryDark
-                )
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = StudioSurfaceDark,
-                tonalElevation = 4.dp
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = StudioSurfaceDark,
+                modifier = Modifier.width(320.dp)
             ) {
-                OmniNavTab.values().forEach { tab ->
-                    val isSelected = selectedTab == tab
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = { selectedTab = tab },
-                        icon = {
-                            Icon(
-                                imageVector = tab.icon,
-                                contentDescription = tab.title,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = tab.title,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.Black,
-                            selectedTextColor = StudioCyanPrimary,
-                            indicatorColor = StudioCyanPrimary,
-                            unselectedIconColor = TextSecondaryDark,
-                            unselectedTextColor = TextSecondaryDark
-                        ),
-                        modifier = Modifier.testTag("nav_${tab.name.lowercase()}")
-                    )
-                }
+                AiStudioSidebarContent(
+                    viewModel = viewModel,
+                    currentDestination = selectedDestination,
+                    onSelectDestination = { dest ->
+                        selectedDestination = dest
+                    },
+                    onCloseSidebar = {
+                        coroutineScope.launch { drawerState.close() }
+                    }
+                )
             }
         }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Crossfade(targetState = selectedTab, label = "ScreenTransition") { tab ->
-                when (tab) {
-                    OmniNavTab.STUDIO -> StudioScreen(
-                        viewModel = viewModel,
-                        onNavigateToCode = { selectedTab = OmniNavTab.CODE },
-                        onNavigateToPreview = { selectedTab = OmniNavTab.PREVIEW },
-                        onNavigateToSecurity = { selectedTab = OmniNavTab.SECURITY }
-                    )
-                    OmniNavTab.CODE -> CodeExplorerScreen(viewModel = viewModel)
-                    OmniNavTab.PREVIEW -> PreviewScreen(viewModel = viewModel)
-                    OmniNavTab.SECURITY -> SecurityScreen(viewModel = viewModel)
-                    OmniNavTab.PROJECTS -> ProjectsScreen(
-                        viewModel = viewModel,
-                        onProjectLoaded = { selectedTab = OmniNavTab.CODE }
-                    )
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = StudioBackgroundDark,
+            topBar = {
+                AiStudioHeader(
+                    viewModel = viewModel,
+                    onOpenSidebar = {
+                        coroutineScope.launch { drawerState.open() }
+                    },
+                    onNavigateToCanvas = {
+                        selectedDestination = StudioDestination.SPLIT_CANVAS
+                    }
+                )
+            },
+            bottomBar = {
+                NavigationBar(
+                    containerColor = StudioSurfaceDark,
+                    tonalElevation = 4.dp
+                ) {
+                    StudioDestination.values().forEach { dest ->
+                        val isSelected = selectedDestination == dest
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = { selectedDestination = dest },
+                            icon = {
+                                Icon(
+                                    imageVector = dest.icon,
+                                    contentDescription = dest.title,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = dest.title,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = StudioBlueAccent,
+                                indicatorColor = StudioBlueAccent,
+                                unselectedIconColor = TextSecondaryDark,
+                                unselectedTextColor = TextSecondaryDark
+                            ),
+                            modifier = Modifier.testTag("nav_${dest.name.lowercase()}")
+                        )
+                    }
                 }
             }
-        }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Crossfade(targetState = selectedDestination, label = "ScreenTransition") { dest ->
+                    when (dest) {
+                        StudioDestination.STUDIO -> StudioScreen(
+                            viewModel = viewModel,
+                            onNavigateToCode = {
+                                viewModel.setCanvasViewMode(CanvasViewMode.CODE)
+                                selectedDestination = StudioDestination.SPLIT_CANVAS
+                            },
+                            onNavigateToPreview = {
+                                viewModel.setCanvasViewMode(CanvasViewMode.LIVE_PREVIEW)
+                                selectedDestination = StudioDestination.SPLIT_CANVAS
+                            },
+                            onNavigateToSecurity = {
+                                selectedDestination = StudioDestination.SECURITY
+                            }
+                        )
+                        StudioDestination.SPLIT_CANVAS -> SplitCanvasScreen(
+                            viewModel = viewModel
+                        )
+                        StudioDestination.PREVIEW -> PreviewScreen(
+                            viewModel = viewModel
+                        )
+                        StudioDestination.SECURITY -> SecurityScreen(
+                            viewModel = viewModel
+                        )
+                        StudioDestination.PROJECTS -> ProjectsScreen(
+                            viewModel = viewModel,
+                            onProjectLoaded = {
+                                selectedDestination = StudioDestination.SPLIT_CANVAS
+                            }
+                        )
+                    }
+                }
+            }
 
-        if (showSettingsDialog) {
-            SettingsDialog(
-                viewModel = viewModel,
-                onDismiss = { showSettingsDialog = false }
-            )
+            if (showSettingsDialog) {
+                SettingsDialog(
+                    viewModel = viewModel,
+                    onDismiss = { showSettingsDialog = false }
+                )
+            }
         }
     }
 }

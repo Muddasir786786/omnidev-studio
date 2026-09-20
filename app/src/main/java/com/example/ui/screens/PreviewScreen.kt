@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,7 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.components.InteractivePreviewCanvas
+import com.example.ui.components.CodifferaLogoBadge
+import com.example.ui.preview.LiveSandboxPreviewView
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.OmniDevViewModel
 
@@ -30,6 +32,7 @@ fun PreviewScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(StudioBackgroundDark)
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
@@ -38,9 +41,15 @@ fun PreviewScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text("INTERACTIVE UI/UX CANVAS", color = StudioCyanPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text(project?.title ?: "Live Interface Simulation", color = TextPrimaryDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                CodifferaLogoBadge(size = 32.dp, showGlow = true)
+                Column {
+                    Text("LIVE ISOLATED SANDBOX", color = StudioBlueAccent, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text(project?.title ?: "Interactive Runtime", color = TextPrimaryDark, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Surface(
@@ -60,19 +69,17 @@ fun PreviewScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        if (project != null) {
-            InteractivePreviewCanvas(
-                title = project.title,
-                platform = project.platform,
-                language = project.language,
-                framework = project.framework,
-                themeStyle = project.themeStyle
+        if (currentProject != null) {
+            LiveSandboxPreviewView(
+                project = currentProject,
+                isDarkTheme = true
             )
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = StudioCardDark)
+                colors = CardDefaults.cardColors(containerColor = StudioCardDark),
+                border = androidx.compose.foundation.BorderStroke(1.dp, StudioBorderDark)
             ) {
                 Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                     Text("No active project loaded. Go to Studio to synthesize a solution.", color = TextSecondaryDark)
