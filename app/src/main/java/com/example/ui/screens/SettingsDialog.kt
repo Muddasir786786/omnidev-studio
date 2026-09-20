@@ -63,7 +63,7 @@ fun SettingsDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(Icons.Default.Key, contentDescription = null, tint = StudioCyanPrimary)
-                Text("OmniDev Engine Settings", color = TextPrimaryDark, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Codiffera Engine Settings", color = TextPrimaryDark, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {

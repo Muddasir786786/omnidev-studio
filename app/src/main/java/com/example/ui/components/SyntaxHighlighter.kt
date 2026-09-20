@@ -47,9 +47,14 @@ fun SyntaxHighlightedCodeView(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = StudioCodeBackground),
-        border = androidx.compose.foundation.BorderStroke(1.dp, StudioBorderDark)
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            androidx.compose.ui.graphics.Brush.horizontalGradient(
+                listOf(StudioCyanPrimary.copy(alpha = 0.5f), StudioNeonBlue.copy(alpha = 0.3f), StudioBorderDark)
+            )
+        )
     ) {
         Column {
             // Header Bar

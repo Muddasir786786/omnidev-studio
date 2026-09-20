@@ -52,7 +52,7 @@ class GeminiDevEngine {
         }
 
         try {
-            val systemInstruction = """You are OmniDev Studio, an autonomous AI software engineer, security specialist, and UI/UX designer.
+            val systemInstruction = """You are Codiffera, an autonomous AI software engineer, security specialist, and UI/UX designer.
 You design and generate complete, functional, secure code and modern professional design systems across all programming languages (Kotlin, TypeScript, Python, Rust, Go, Swift, C++, SQL, Bash, PHP).
 Always output valid JSON with this exact structure:
 {

@@ -1,5 +1,5 @@
 {
-  "name": "OmniDev Studio",
+  "name": "Codiffera",
   "description": "Autonomous AI-powered developer and UI/UX designer for building complete, secure apps and websites across multiple programming languages.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

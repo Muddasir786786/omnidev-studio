@@ -44,7 +44,7 @@ class ExampleRobolectricTest {
     fun `verify app name resource matches platform identity`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val appName = context.getString(R.string.app_name)
-        assertEquals("OmniDev Studio", appName)
+        assertEquals("Codiffera", appName)
     }
 
     @Test

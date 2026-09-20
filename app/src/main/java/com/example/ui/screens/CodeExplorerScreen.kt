@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.ArchitectureGraphView
+import com.example.ui.components.CodifferaHeroBanner
+import com.example.ui.components.CodifferaLogoBadge
 import com.example.ui.components.SyntaxHighlightedCodeView
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.OmniDevViewModel
@@ -46,22 +48,34 @@ fun CodeExplorerScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // Top Header
+        // Prominent Codiffera Header Card with Glowing Startup Splash
+        CodifferaHeroBanner(
+            subtitle = "DEV TOOL STUDIO • CODE ENGINE",
+            modifier = Modifier.padding(bottom = 14.dp)
+        )
+
+        // Split View Code & Architecture Controls Bar
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text("CODE & SYSTEM ARCHITECTURE", color = StudioCyanPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text(project?.title ?: "Project Code", color = TextPrimaryDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                CodifferaLogoBadge(size = 32.dp, showGlow = true)
+                Column {
+                    Text("SYNTAX-HIGHLIGHTED CODEBASE", color = StudioCyanPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text(project?.title ?: "Project Code", color = TextPrimaryDark, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = showArchitecture,
                     onClick = { showArchitecture = !showArchitecture },
-                    label = { Text("Architecture") },
+                    label = { Text("Split Architecture") },
                     leadingIcon = { Icon(Icons.Default.AccountTree, contentDescription = null, modifier = Modifier.size(16.dp)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = StudioCyanPrimary,

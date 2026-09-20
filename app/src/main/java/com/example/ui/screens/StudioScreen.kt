@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.components.CodifferaHeroBanner
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.GenerationState
 import com.example.ui.viewmodel.OmniDevViewModel
@@ -67,6 +68,12 @@ fun StudioScreen(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
+        // Prominent Codiffera Brand Header with glowing startup splash effect
+        CodifferaHeroBanner(
+            subtitle = "DEV TOOL STUDIO",
+            modifier = Modifier.padding(bottom = 14.dp)
+        )
+
         // Hero Header
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -144,7 +151,7 @@ fun StudioScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
                     Text(
-                        text = "Describe any mobile app or website. OmniDev autonomously architects the system, designs the UI/UX tokens, produces multi-file functional code, and enforces OWASP security hardening.",
+                        text = "Describe any mobile app or website. Codiffera autonomously architects the system, designs the UI/UX tokens, produces multi-file functional code, and enforces OWASP security hardening.",
                         color = TextSecondaryDark,
                         fontSize = 13.sp,
                         lineHeight = 18.sp

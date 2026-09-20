@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.components.CodifferaLogoBadge
 import com.example.ui.screens.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.OmniDevViewModel
@@ -71,32 +72,31 @@ fun OmniDevAppRoot(viewModel: OmniDevViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(
-                                    Brush.linearGradient(listOf(StudioCyanPrimary, StudioPurpleSecondary)),
-                                    RoundedCornerShape(8.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Terminal, contentDescription = null, tint = Color.Black, modifier = Modifier.size(18.dp))
-                        }
+                        CodifferaLogoBadge(size = 36.dp, showGlow = true)
                         Column {
-                            Text(
-                                text = "OmniDev Studio",
-                                color = TextPrimaryDark,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            project?.let { p ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "${p.platform} • ${p.language}",
+                                    text = "Codiff",
+                                    color = TextPrimaryDark,
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = (-0.5).sp
+                                )
+                                Text(
+                                    text = "era",
                                     color = StudioCyanPrimary,
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = (-0.5).sp
                                 )
                             }
+                            Text(
+                                text = project?.let { "${it.platform} • ${it.language}" } ?: "DEV TOOL STUDIO",
+                                color = StudioCyanPrimary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.sp
+                            )
                         }
                     }
                 },

@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "OmniDev Studio"
+rootProject.name = "Codiffera"
 
 include(":app")
